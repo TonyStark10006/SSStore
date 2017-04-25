@@ -9,17 +9,30 @@
         return $data;
     }
 
-    //定义输出返回内容函数，拼接成json字符串
-    function outPutJson( $code, $data, $msg ){
+    /*
+     * 定义输出返回内容函数，拼接封装成json字符串
+     * return string json数据
+     * */
+    function outPutJson( $code, $msg, $data ){
         echo '{ "Code" : "'. $code . '" , "Message" : "' . $msg . '" , "Data" : ' . $data . ' }' ;
     }
 
 
-    //定义返回变量
+    /*
+     * 定义变量
+     * @param string $code 状态码
+     * @param string $msg 提示信息
+     * @param string $data 返回数据
+     * @param sting $userAppKey 自定义用于校验用户身份的KEY
+     * @param string $appKey 请求中用于校验用户身份的KEY
+     * @param string $name 请求中的提交的键值
+     * */
     $code = 200;
-    $msg = 'ok';
+    $msg = 'OK';
     $data = '';
     $userAppKey = '';
+    $appKey = null;
+    $name = null;
 
 
     try {
@@ -29,10 +42,10 @@
             throw new Exception('appkey or keyvalue missed');
         }
 
-        $appkey = filter($_GET['appkey']);
+        $appKey = filter($_GET['appkey']);
         $name = filter($_GET['name']);
 
-        if ($appkey !== $userAppKey){
+        if ($appKey !== $userAppKey){
 
             $code = 402;
             throw new Exception('appkey incorrect');
@@ -64,7 +77,7 @@
                     throw new Exception('no result');
 
                 } else {
-                    //将获得的数组形式的查询结果转成Jason格式数据
+                    //将获得的数组形式的查询结果转成Jason格式数据，JSON_UNESCAPED_UNICODE选项作用是不以unicode编码中文，即显示“中文”而不是显示“/uXXX”
                     $data = json_encode($result,JSON_UNESCAPED_UNICODE);
 
                 }
@@ -78,7 +91,7 @@
 
     }
 
-    outPutJson( $code, $data, $msg );
+    outPutJson( $code, $msg, $data );
 
 
 	exit();
