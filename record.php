@@ -77,7 +77,7 @@
                     throw new Exception('no result');
 
                 } else {
-                    //将获得的数组形式的查询结果转成Jason格式数据，JSON_UNESCAPED_UNICODE选项作用是不以unicode编码中文，即显示“中文”而不是显示“/uXXX”
+                    //将获得的数组形式的查询结果转成Jason格式数据，JSON_UNESCAPED_UNICODE选项作用以字面编码多字节Unicode字符，即显示“中文”而不是显示“/uXXX”
                     $data = json_encode($result,JSON_UNESCAPED_UNICODE);
 
                 }
