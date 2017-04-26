@@ -56,8 +56,11 @@ try {
             $redis = new Redis();
             $redis->connect('127.0.0.1', 6379);
             $keyName = urlencode($name);
-            $keyValue = $redis->get("$keyName");
+            $keyValue = $redis->get($keyName);
 
+            /*
+             * 搜索redis中是否缓存了搜索结果，没有的话查询数据库输出结果并将结果写入redis
+             * */
             if (empty($keyValue)){
                 //数据库连接信息
                 $username="";
