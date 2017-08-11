@@ -9,10 +9,10 @@ class AddLuckyMoneyModel
 {
     //
     //新增红包
-    public $action;
-    public $luckyMoneyNumber;
-    public $luckyMoneyPeriod;
-    public $minPeriod;
+    protected $action;
+    protected $luckyMoneyNumber;
+    protected $luckyMoneyPeriod;
+    protected $minPeriod;
 
     use filterTrait;
 
@@ -23,7 +23,7 @@ class AddLuckyMoneyModel
         if ($request->has('action')
             && $request->has('number')
             && $request->has('period')
-            || $request->has('minNumber')
+            || $request->has('minPeriod')
         ) {
             $this->action = self::filter($request->input('action'));
             $this->luckyMoneyNumber = self::filter($request->input('number'));
@@ -58,14 +58,9 @@ class AddLuckyMoneyModel
 
         if ($result) {
             return '创建红包成功，红包ID为' . $lm_id . '，分享链接为'. url('getLuckyMoney') . '?LM=' . $lm_id;
-            /*return redirect('activities')->with([
-                'message' => 'addLMSuccess',
-                'LMID' => $lm_id
-            ]);*/
 
         } else {
             return '创建失败';
-            //return redirect('activities')->with('message', 'addLMFailure');
         }
 
     }
