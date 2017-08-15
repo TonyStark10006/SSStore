@@ -1,4 +1,8 @@
 <?php
+//namespace App;
+
+//use swoole_websocket_server;
+//use swoole_table;
 
 //创建Swoole表格，用于储存用户ID跟SwooleID的对应关系
 $user_table = new swoole_table(2048);
@@ -50,7 +54,7 @@ $ws->on('message', function ($ws, $frame) {
             $returnMsg['mine'] = false;
             $returnMsg['timestamp'] = $timestamp;//1499938420198
 
-            //消息接收人，如果不存在则离线保存说
+            //消息接收人，如果不存在则离线保存
             if ($receiver = $user_table->get($receiverMsg->data->to->username, 'swoole_id')) {
 
                 //推送消息给接收人
