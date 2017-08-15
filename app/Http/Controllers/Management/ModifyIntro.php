@@ -11,7 +11,6 @@ use Illuminate\Support\Facades\Redis;
 class ModifyIntro extends Controller
 {
     //
-    protected $request;
     protected $ModifyIntroModel;
 
 
@@ -19,14 +18,7 @@ class ModifyIntro extends Controller
 
     public function __construct(Request $request)
     {
-        $this->request = $request;
         $this->ModifyIntroModel = new ModifyIntroModel($request);
-    }
-
-    public function test()
-    {
-        $result = Redis::set('woca', '尼玛');
-        return var_dump($result);
     }
 
     public function modifyPage()
@@ -46,5 +38,10 @@ class ModifyIntro extends Controller
 
         //返回修改页面，msg为1表示修改成功，2为失败
         return redirect($result['tips'])->with('msg', $result['msg']);
+    }
+
+    public function __destruct()
+    {
+        unset($this->ModifyIntroModel);
     }
 }
