@@ -41,22 +41,28 @@ $ws->on('message', function ($ws, $frame) {
             //获取13位时间戳，服务器发送消息时间
             list($t1, $t2) = explode(' ', microtime());
             $timestamp = sprintf('%.0f', (floatval($t1) + floatval($t2)) * 1000);
-            settype($timestamp, 'int');
+            //settype($timestamp, 'int');
 
             //推送给接收人的消息内容
             $returnMsg = array();
-            //$returnMsg['username'] = $receiverMsg->data->to->username;
             $returnMsg['username'] = $receiverMsg->data->mine->username;
             $returnMsg['avatar'] = $receiverMsg->data->mine->avatar;
-            $returnMsg['id'] = $receiverMsg->data->mine->id;
+
+            //根据聊天类型赋值相应ID，客户端根据ID判断消息来源
+            if ($receiverMsg->data->to->type == 'friend') {
+                $returnMsg['id'] = $receiverMsg->data->mine->id;
+            }
+            if ($receiverMsg->data->to->type == 'group') {
+                $returnMsg['id'] = $receiverMsg->data->to->id;
+            }
             $returnMsg['type'] = $receiverMsg->data->to->type;
             $returnMsg['content'] = $receiverMsg->data->mine->content;
             $returnMsg['mine'] = false;
             $returnMsg['timestamp'] = $timestamp;//1499938420198
 
-            //消息接收人，如果不存在则离线保存
-            if ($receiver = $user_table->get($receiverMsg->data->to->username, 'swoole_id')) {
-
+            //处理单聊消息
+            if ($receiverMsg->data->to->type == 'friend') {
+                $receiver = $user_table->get($receiverMsg->data->to->username, 'swoole_id');
                 //推送消息给接收人
                 $ws->push($receiver, json_encode($returnMsg, JSON_UNESCAPED_UNICODE));//"{$frame->data}"
                 print_r(json_encode($returnMsg, JSON_UNESCAPED_UNICODE));
@@ -67,6 +73,14 @@ $ws->on('message', function ($ws, $frame) {
 
             }*/
 
+            //处理群聊
+            if ($receiverMsg->data->to->type == 'group') {
+                foreach ($ws->connections as $allFd) {
+                    if ($frame->fd !== $allFd) {
+                        $ws->push($allFd, json_encode($returnMsg, JSON_UNESCAPED_UNICODE));
+                    }
+                }
+            }
             break;
 
         case 'int':
