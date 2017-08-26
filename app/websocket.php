@@ -18,7 +18,7 @@ $ws->on('open', function ($ws, $request) {
     //
 });
 
-$ws->on('message', function ($ws, $frame) {
+$ws->on('message', function ($ws, $frame) use ($user_table) {
     print_r($frame->data);
     echo "\n";
 
@@ -26,9 +26,6 @@ $ws->on('message', function ($ws, $frame) {
     $receiverMsg = json_decode($frame->data);
     print_r($receiverMsg->type);
     echo "\n";
-
-    //用户ID跟swooleID绑定表
-    global $user_table;
 
     /*
      * 根据用户发送消息类型进行相应处理
@@ -58,7 +55,7 @@ $ws->on('message', function ($ws, $frame) {
             $returnMsg['type'] = $receiverMsg->data->to->type;
             $returnMsg['content'] = $receiverMsg->data->mine->content;
             $returnMsg['mine'] = false;
-            $returnMsg['timestamp'] = $timestamp;//1499938420198
+            $returnMsg['timestamp'] = (int) $timestamp;//1499938420198
 
             //处理单聊消息
             if ($receiverMsg->data->to->type == 'friend') {
@@ -80,6 +77,8 @@ $ws->on('message', function ($ws, $frame) {
                         $ws->push($allFd, json_encode($returnMsg, JSON_UNESCAPED_UNICODE));
                     }
                 }
+                print_r(json_encode($returnMsg, JSON_UNESCAPED_UNICODE));
+                echo "\n";
             }
             break;
 
@@ -105,11 +104,10 @@ $ws->on('message', function ($ws, $frame) {
 
 
 
-$ws->on('close', function ($ws, $fd) {
+$ws->on('close', function ($ws, $fd) use ($user_table) {
     /*foreach($server->connections as $fd) {
         $server->push($fd, json_encode($data));
     }*/
-    global $user_table;
     $delTarget = $user_table->get($fd)['username'];
     $user_table->del($delTarget);
     $user_table->del($fd);
