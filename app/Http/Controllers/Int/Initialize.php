@@ -31,7 +31,7 @@ class Initialize extends Controller
 
         $sql['nodeList'] = '
         CREATE TABLE IF NOT EXISTS node_list (
-        zone_id smallint(4) AUTO_INCREMENT PRIMARY KEY,
+        zone_id smallint(4) UNSIGNED AUTO_INCREMENT PRIMARY KEY,
         zone_name varchar(20) NOT NULL,
         description text,
         price int(5) NOT NULL,
@@ -44,6 +44,7 @@ class Initialize extends Controller
         order_id int(11) UNSIGNED AUTO_INCREMENT PRIMARY KEY,
         user_id INT(10) UNSIGNED NOT NULL,
         order_no varchar(30) NOT NULL,
+        zone_id SMALLINT UNSIGNED NOT NULL,
         zone_name varchar(20) NOT NULL,
         period tinyint(4) UNSIGNED NOT NULL,
         total_price int(10) NOT NULL,
@@ -114,6 +115,32 @@ class Initialize extends Controller
         create_time TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL,
         update_time TIMESTAMP DEFAULT \'0000-00-00 00:00:00\' ON UPDATE CURRENT_TIMESTAMP
         )ENGINE=InnoDB DEFAULT CHARSET=utf8';
+
+        $sql['stockLog'] = '
+        CREATE TABLE IF NOT EXISTS stock_log (
+        id INT UNSIGNED PRIMARY KEY AUTO_INCREMENT,
+        order_no varchar(30) NOT NULL,
+        zone_id TINYINT UNSIGNED NOT NULL,
+        zone_name varchar(20) NOT NULL,
+        period TINYINT UNSIGNED NOT NULL,
+        remain_period INT UNSIGNED NOT NULL,
+        buyer VARCHAR(30) NOT NULL,
+        remark VARCHAR(30),
+        create_time TIMESTAMP NOT NULL
+        )DEFAULT charset=utf8 ENGINE=INNODB;';
+
+        $sql['triggerStockLog'] = '
+        delimiter  $
+        CREATE TRIGGER STOCK_LOG
+        AFTER INSERT ON `order`
+        FOR EACH ROW
+        BEGIN
+        DECLARE RP INT;
+        UPDATE stock_log SET remain_period = remain_period - new.period WHERE zone_name = new.zone_name AND remark = \'新增库存\' ORDER BY create_time DESC LIMIT 1 ;
+        SET RP = (SELECT remain_period FROM stock_log WHERE remark = \'新增库存\' ORDER BY create_time DESC LIMIT 1);
+        INSERT stock_log (zone_id, zone_name, period, order_no, buyer, remain_period) VALUES (new.zone_id, new.zone_name, new.period, new.order_no, new.user_id, RP);
+        END $
+        DELIMITER ;';
 
         foreach ($sql as $key => $go) {
             DB::statement($go);
