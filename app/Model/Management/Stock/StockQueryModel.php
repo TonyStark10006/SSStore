@@ -11,7 +11,7 @@ class StockQueryModel extends StockModel
     private $date3;
     private $date4;
 
-    protected $result;
+    private $result;
 
     public function __construct(Request $request)
     {
@@ -24,6 +24,7 @@ class StockQueryModel extends StockModel
             $this->date4 = $this->filter($request->input('date4'));
             $this->zoneNameLogQuery = $this->filter($request->input('zoneNameLogQuery'));
         }
+
 
     }
 
@@ -116,5 +117,38 @@ class StockQueryModel extends StockModel
         $this->result .= '</tbody></table>';
 
         return $this->result;
+    }
+
+    public function realTimeStockQuery()
+    {
+        /*
+         * Illuminate\Support\Collection Object ( [items:protected] => Array ( [0] => stdClass Object ( [id] => 1 [zone_id] => 2 [zone_name] => 韩国 [remain_period] => 105 [remark] => 2017年08月31日 16:12:44 [update_time] => 2017-08-31 16:12:44 )
+         * [1] => stdClass Object ( [id] => 2 [zone_id] => 1 [zone_name] => 日本 [remain_period] => 100 [remark] => 新增库存 [update_time] => 2017-08-31 10:56:18 )
+         * [2] => stdClass Object ( [id] => 4 [zone_id] => 3 [zone_name] => 香港 [remain_period] => 52 [remark] => 调增2个月 [update_time] => 2017-08-31 16:27:39 ) ) )*/
+        $result = DB::table('stock')->get();
+        $script = '';
+        foreach ($result as $items) {
+            $script .= "case '{$items->zone_name}': stock={$items->remain_period};break;";
+        }
+        return <<<JS
+            var zone = $("#zone").val();
+            var stock;
+            switch(zone) {
+            {$script}
+            }
+        
+            $("#stock").text(stock);
+            
+            $("#zone").change(function() {
+                var zone = $("#zone").val();
+                var stock;
+                switch(zone) {
+                {$script}
+                }
+                
+                $("#stock").text(stock);
+            });
+JS;
+
     }
 }
