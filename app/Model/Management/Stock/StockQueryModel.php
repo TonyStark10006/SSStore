@@ -130,7 +130,26 @@ class StockQueryModel extends StockModel
         foreach ($result as $items) {
             $script .= "case '{$items->zone_name}': stock={$items->remain_period};break;";
         }
-        $response = "
+        $response = <<<JS
+            var zone = $("#zone").val();
+            var stock;
+            switch(zone) {
+            {$script}
+            }
+        
+            $("#stock").text(stock);
+            
+            $("#zone").change(function() {
+                var zone = $("#zone").val();
+                var stock;
+                switch(zone) {
+                {$script}
+                }
+                
+                $("#stock").text(stock);
+            });
+JS;
+            /*"
             var zone = $(\"#zone\").val();
             var stock;
             switch(zone) {
@@ -148,9 +167,10 @@ class StockQueryModel extends StockModel
                 
                 $(\"#stock\").text(stock);
             });
-";
+"*/;
         return response($response, 200)
-            ->header('Content-Type', 'application/x-javascript');
+            ->header('Content-Type', 'application/x-javascript')
+            ->header('Cache-Control', 'no-store');
 
     }
 }
