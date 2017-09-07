@@ -4,6 +4,7 @@ namespace App\Model\Order;
 use App\Model\Management\Stock\StockRollBackModel;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Session;
 
 class UpdateOrderStatus extends Order
 {
@@ -26,15 +27,21 @@ class UpdateOrderStatus extends Order
         }
 
         //判断当前订单状态，若是已充值或者已取消则拒绝取消订单请求
-        $sqlForPayStatus = 'SELECT `order_no`, `pay_status` FROM `order` WHERE ';
+        $sqlForPayStatus = 'SELECT `order_no`, `pay_status`, `user_id` FROM `order` WHERE ';
         foreach (self::generator(count($this->data), '`order_no` = ? ' . 'OR ') as $items) {
             $sqlForPayStatus .= $items;
         }
         $sqlForPayStatus = substr($sqlForPayStatus, 0, -4);
         $payStatusResult = DB::select($sqlForPayStatus, $this->data);
-        foreach ($payStatusResult as $tiems1) {
-            if ($tiems1->pay_status == 1 || $tiems1->pay_status == 2) {
-                return '订单' . $tiems1->order_no . '已充值或者已经取消，无法取消';
+        $logInID = Session::get('user_id');
+        $permission = Session::get('permission');
+        foreach ($payStatusResult as $items1) {
+            //app('debugbar')->info($items1->user_id, $logInID, $permission);
+            //判断请求取消订单是否是当前用户的订单
+            if ($items1->user_id !== $logInID && $permission !== 1) {
+                return '你无权取消该订单' . $items1->order_no;
+            } elseif ($items1->pay_status == 1 || $items1->pay_status == 2) {
+                return '订单' . $items1->order_no . '已充值或者已经取消，无法取消';
             }
         }
 
