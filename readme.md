@@ -21,3 +21,6 @@
 - 宣传页面内容管理（内容修改&amp;保存）
 - 节点库存管理
 - 用户主动取消订单功能（库存实时回滚）
+
+#### 流程图
+![FlowChart](https://github.com/TonyStark10006/SSStore/raw/master/flowchart.png)
