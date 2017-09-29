@@ -15,29 +15,47 @@ class Initialize extends Controller
     public function createDBTable()
     {
         $sql['member'] = '
-        CREATE TABLE IF NOT EXISTS member (
-        user_id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-        permission VARCHAR(10),
-        username VARCHAR(30) NOT NULL,
-        password VARCHAR(64) NOT NULL,
-        user_group VARCHAR(30) NOT NULL,
-        remark TEXT,
-        reg_date TIMESTAMP
-        )ENGINE=InnoDB DEFAULT CHARSET=utf8';
+        CREATE TABLE IF NOT EXISTS `member` (
+          `user_id` int(10) unsigned NOT NULL AUTO_INCREMENT,
+          `permission` tinyint(3) DEFAULT NULL,
+          `username` varchar(30) NOT NULL,
+          `password` varchar(64) NOT NULL,
+          `user_group` varchar(30) DEFAULT NULL,
+          `remark` text,
+          `reg_date` timestamp NOT NULL,
+          `email` varchar(50) DEFAULT NOT NULL UNIQUE,
+          `update_time` timestamp NOT NULL DEFAULT \'0000-00-00 00:00:00\' ON UPDATE CURRENT_TIMESTAMP,
+          `token` varchar(255) DEFAULT NULL,
+          PRIMARY KEY (`user_id`)
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8';
 
         $sql['createAdmin'] = '
-        INSERT INTO `member` (permission, username, password, user_group, remark) 
+        INSERT INTO `member` (permission, username, password, user_group, remark, email) 
         VALUES (1, \'admin\', \'8a2a523b38559c1b7df1a6d47b9bdf2c\', \'ultimate\', \'默认管理员账号\')';
 
         $sql['nodeList'] = '
-        CREATE TABLE IF NOT EXISTS node_list (
-        zone_id smallint(4) UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-        zone_name varchar(20) NOT NULL,
-        description text,
-        price int(5) NOT NULL,
-        remark tinytext,
-        update_time TIMESTAMP NOT NULL
-        )ENGINE=InnoDB DEFAULT CHARSET=utf8';
+        CREATE TABLE IF NOT EXISTS `node_list` (
+          `zone_id` smallint(4) NOT NULL AUTO_INCREMENT,
+          `id` int(11) NOT NULL,
+          `zone_name` varchar(20) NOT NULL,
+          `description` text,
+          `price` int(5) NOT NULL,
+          `remark` tinytext,
+          `update_time` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+          `name` varchar(128) NOT NULL,
+          `type` tinyint(3) unsigned NOT NULL,
+          `server` varchar(128) NOT NULL,
+          `method` varchar(64) NOT NULL,
+          `custom_method` tinyint(3) unsigned NOT NULL DEFAULT \'0\',
+          `traffic_rate` float NOT NULL DEFAULT \'1\',
+          `info` varchar(128) NOT NULL,
+          `status` varchar(128) NOT NULL,
+          `offset` int(11) NOT NULL DEFAULT \'0\',
+          `sort` int(3) NOT NULL,
+          `used_port` int(10) unsigned NOT NULL,
+          PRIMARY KEY (`zone_id`),
+          KEY `ZoneIndex` (`zone_name`)
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8';
 
         $sql['order'] = '
         CREATE TABLE IF NOT EXISTS `order` (
@@ -154,6 +172,90 @@ class Initialize extends Controller
         INSERT stock_log (zone_id, zone_name, period, order_no, buyer, remain_period) VALUES (new.zone_id, new.zone_name, new.period, new.order_no, new.user_id, RP);
         END $
         delimiter ;';
+
+        $sql['ss_node'] = '
+        CREATE TABLE IF NOT EXISTS `ss_node` (
+          `id` int(11) NOT NULL AUTO_INCREMENT,
+          `name` varchar(128) NOT NULL,
+          `type` int(3) NOT NULL,
+          `server` varchar(128) NOT NULL,
+          `method` varchar(64) NOT NULL,
+          `custom_method` tinyint(1) NOT NULL DEFAULT \'0\',
+          `traffic_rate` float NOT NULL DEFAULT \'1\',
+          `info` varchar(128) NOT NULL,
+          `status` varchar(128) NOT NULL,
+          `offset` int(11) NOT NULL DEFAULT \'0\',
+          `sort` int(3) NOT NULL,
+          PRIMARY KEY (`id`)
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4';
+
+        $sql['SSNodeInfoLog'] = '
+        CREATE TABLE IF NOT EXISTS `ss_node_info_log` (
+          `id` int(11) NOT NULL AUTO_INCREMENT,
+          `node_id` int(11) NOT NULL,
+          `uptime` float NOT NULL,
+          `load` varchar(32) NOT NULL,
+          `log_time` int(11) NOT NULL,
+          PRIMARY KEY (`id`)
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8';
+
+        $sql['SSNodeOnlineLog'] = '
+        CREATE TABLE IF NOT EXISTS `ss_node_online_log` (
+          `id` int(11) NOT NULL AUTO_INCREMENT,
+          `node_id` int(11) NOT NULL,
+          `online_user` int(11) NOT NULL,
+          `log_time` int(11) NOT NULL,
+          PRIMARY KEY (`id`)
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8';
+
+        $sql['user'] = '
+        CREATE TABLE IF NOT EXISTS `user` (
+          `id` int(11) NOT NULL AUTO_INCREMENT,
+          `node_id` int(10) unsigned DEFAULT NULL,
+          `node_name` varchar(32) DEFAULT NULL,
+          `user_name` varchar(128) CHARACTER SET utf8mb4 NOT NULL,
+          `uid` int(10) unsigned NOT NULL,
+          `email` varchar(32) NOT NULL DEFAULT \'666@666.com\',
+          `pass` varchar(64) NOT NULL DEFAULT \'666@666.com\',
+          `passwd` varchar(16) NOT NULL,
+          `t` int(11) NOT NULL DEFAULT \'0\',
+          `u` bigint(20) NOT NULL DEFAULT \'0\',
+          `d` bigint(20) NOT NULL DEFAULT \'0\',
+          `transfer_enable` bigint(20) NOT NULL,
+          `port` int(11) NOT NULL,
+          `protocol` varchar(32) NOT NULL DEFAULT \'origin\',
+          `obfs` varchar(32) NOT NULL DEFAULT \'plain\',
+          `switch` tinyint(4) NOT NULL DEFAULT \'1\',
+          `enable` tinyint(4) NOT NULL DEFAULT \'1\',
+          `type` tinyint(4) NOT NULL DEFAULT \'1\',
+          `last_get_gift_time` int(11) NOT NULL DEFAULT \'0\',
+          `last_check_in_time` int(11) NOT NULL DEFAULT \'0\',
+          `last_rest_pass_time` int(11) NOT NULL DEFAULT \'0\',
+          `reg_date` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+          `invite_num` int(8) NOT NULL DEFAULT \'0\',
+          `is_admin` int(2) NOT NULL DEFAULT \'0\',
+          `ref_by` int(11) NOT NULL DEFAULT \'0\',
+          `expire_time` int(11) NOT NULL DEFAULT \'0\',
+          `method` varchar(64) NOT NULL DEFAULT \'rc4-md5\',
+          `is_email_verify` tinyint(4) NOT NULL DEFAULT \'0\',
+          `reg_ip` varchar(128) NOT NULL DEFAULT \'127.0.0.1\',
+          PRIMARY KEY (`id`),
+          UNIQUE KEY `port` (`port`),
+          KEY `node_id` (`node_id`)
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8';
+
+        $sql['userTrafficLog'] = '
+        CREATE TABLE IF NOT EXISTS `user_traffic_log` (
+          `id` int(11) NOT NULL AUTO_INCREMENT,
+          `user_id` int(11) NOT NULL,
+          `u` int(11) NOT NULL,
+          `d` int(11) NOT NULL,
+          `node_id` int(11) NOT NULL,
+          `rate` float NOT NULL,
+          `traffic` decimal(20,3) NOT NULL,
+          `log_time` int(11) NOT NULL,
+          PRIMARY KEY (`id`)
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8';
 
         foreach ($sql as $key => $go) {
             DB::statement($go);

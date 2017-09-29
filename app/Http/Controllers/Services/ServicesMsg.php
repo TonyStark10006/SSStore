@@ -1,36 +1,30 @@
 <?php
 
-namespace App\Http\Controllers\Int;
+namespace App\Http\Controllers\Services;
 
-use App\Http\Controllers\publicTool\filterTrait;
-use App\Model\Management\Stock\StockQueryModel;
-use App\Model\Services\UsageSummary;
 use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Session;
+use App\Model\Services\UsageSummary;
+use App\Http\Controllers\publicTool\filterTrait;
 
-class Resource extends Controller
+class ServicesMsg extends Controller
 {
-    //
     private $request;
     private $type;
-
-
+    //
     use filterTrait;
-
     public function __construct(Request $request)
     {
         $this->request = $request;
-        $this->type = $this->filter($request->input('type'));
+        if ($request->has('type')) {
+            $this->type = $this->filter($request->input('type'));
+        }
     }
 
     public function go()
     {
-        if ($this->type == 'orderstock') {
-            return self::getIRealTimeStock();
-        }
-
         if ($this->type == 'sevendaysflow') {
             return self::getSevenDaysFlow();
         }
@@ -42,11 +36,12 @@ class Resource extends Controller
         return response('', 404);
     }
 
-    public function getIRealTimeStock()
+    public function getServicesMsg()
     {
-        $model = new StockQueryModel($this->request);
-        return $model->realTimeStockQuery();
+        $model = new UsageSummary($this->request);
+        return $model->getServicesMsg();
     }
+
 
     public function getSevenDaysFlow()
     {
