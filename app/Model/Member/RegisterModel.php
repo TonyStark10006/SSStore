@@ -60,24 +60,28 @@ class RegisterModel extends Model
 
         $this->email = filter_var($this->registerMsg['email'], FILTER_SANITIZE_EMAIL);
 
+        $result = DB::table('member')->where('username', $this->username)->value('username');
+        $result3 = DB::table('member')->where('email', $this->email)->value('email');
         //判断用户名是否已经被注册
-        $result = DB::table('member')->where('username', $this->username)->first();
         if (!$result) {
-            //用户名没被注册，写入用户信息，返回受影响行数，插入成功返回1，失败返回0
-            $result1 = DB::table('member')->insert([
-                'username' => $this->username,
-                'password' => md5($this->password . 'GOOD_PW'),
-                'email' => $this->email,
-                'permission' => 2
-            ]);
-            //判断是否写入成功，成功则返回提示信息以及减少一次邀请码有效次数
-            if ( $result1 !== 0) {
-                //邀请码有效次数减一
-                DB::table('inv_code')->where('inv_code', $this->invCode)->update(['valid_times' => $result2 - 1]);
-                return array(
-                    'tips' => '注册成功',
-                    'msg' => 'login'
-                );
+            //判断邮箱是否已经被注册
+            if (!$result3) {
+                //用户名以及没被注册，写入用户信息，返回受影响行数，插入成功返回1，失败返回0
+                $result1 = DB::table('member')->insert([
+                    'username' => $this->username,
+                    'password' => md5($this->password . 'GOOD_PW'),
+                    'email' => $this->email,
+                    'permission' => 2,
+                    'reg_ip' => $request->getClientIp()
+                ]);
+                //判断是否写入成功，成功则返回提示信息以及减少一次邀请码有效次数
+                if ( $result1 !== 0) {
+                    //邀请码有效次数减一
+                    DB::table('inv_code')->where('inv_code', $this->invCode)->update(['valid_times' => $result2 - 1]);
+                    return array(
+                        'tips' => '注册成功',
+                        'msg' => 'login'
+                    );
 
                 } else {
                     return array(
@@ -85,6 +89,13 @@ class RegisterModel extends Model
                         'msg' => 'register'
                     );
                 }
+            } else {
+                return array(
+                    'tips' => '该邮箱已被注册',
+                    'msg' => 'register'
+                );
+            }
+
 
         } else {
             return array(

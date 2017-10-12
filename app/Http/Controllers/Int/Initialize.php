@@ -26,6 +26,7 @@ class Initialize extends Controller
           `email` varchar(50) DEFAULT NOT NULL UNIQUE,
           `update_time` timestamp NOT NULL DEFAULT \'0000-00-00 00:00:00\' ON UPDATE CURRENT_TIMESTAMP,
           `token` varchar(255) DEFAULT NULL,
+          `reg_ip` varchar(30),
           PRIMARY KEY (`user_id`)
         ) ENGINE=InnoDB DEFAULT CHARSET=utf8';
 
