@@ -125,28 +125,55 @@ class StockQueryModel extends StockModel
          * Illuminate\Support\Collection Object ( [items:protected] => Array ( [0] => stdClass Object ( [id] => 1 [zone_id] => 2 [zone_name] => 韩国 [remain_period] => 105 [remark] => 2017年08月31日 16:12:44 [update_time] => 2017-08-31 16:12:44 )
          * [1] => stdClass Object ( [id] => 2 [zone_id] => 1 [zone_name] => 日本 [remain_period] => 100 [remark] => 新增库存 [update_time] => 2017-08-31 10:56:18 )
          * [2] => stdClass Object ( [id] => 4 [zone_id] => 3 [zone_name] => 香港 [remain_period] => 52 [remark] => 调增2个月 [update_time] => 2017-08-31 16:27:39 ) ) )*/
-        $result = DB::table('stock')->get();
+        $result = DB::table('stock')
+            ->select( 'node_list.zone_id', 'node_list.price', 'stock.*')
+            ->leftJoin('node_list', 'stock.zone_id', '=', 'node_list.zone_id')
+            ->orderBy('stock.zone_id')
+            ->get();
         $script = '';
         foreach ($result as $items) {
-            $script .= "case '{$items->zone_name}': stock={$items->remain_period};break;";
+            $script .= "case '{$items->zone_id}': stocks={$items->remain_period}; price={$items->price}; zone1='{$items->zone_name}';break;";
         }
         $response = <<<JS
-            var zone = $("#zone").val();
-            var stock;
-            switch(zone) {
-            {$script}
-            }
-        
-            $("#stock").text(stock);
+            //加载页面时计算价格
+            var period1 = $("#period").val();
+            $("#stock").text({$result[0]->remain_period});
+            $("#price").text({$result[0]->price});
+            $("#modal-zone").text('{$result[0]->zone_name}');
+            $("#modal-period").text(period1);
+            $("#modal-price").text(period1 * {$result[0]->price});
             
+            //
             $("#zone").change(function() {
                 var zone = $("#zone").val();
-                var stock;
+                var stocks;
+                var period = $("#period").val();
+                var price;
                 switch(zone) {
-                {$script}
+                    {$script}
                 }
-                
-                $("#stock").text(stock);
+        
+                $("#price").text(price * period);
+                $("#modal-zone").text(zone1);
+                $("#modal-period").text(period);
+                $("#modal-price").text(price * period);
+                $("#stock").text(stocks);
+            });
+            
+            $("#period").change(function() {
+                var zone = $("#zone").val();
+                var stocks;
+                var period = $("#period").val();
+                var price;
+                switch(zone) {
+                    {$script}
+                }
+        
+                $("#price").text(price * period);
+                $("#modal-zone").text(zone1);
+                $("#modal-period").text(period);
+                $("#modal-price").text(price * period);
+                $("#stock").text(stocks);
             });
 JS;
             /*"
