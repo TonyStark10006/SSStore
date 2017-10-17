@@ -10,7 +10,7 @@
 - 在线IM客服（目前支持一对一实时聊天，需要登录）
 - 节点库存管理（订单页面实时库存查询，管理页面库存查询、库存操作记录查询，全新入库、库存调增、调减）
 - 节点流量查询(用户近7天&近3个月流量使用情况查询)
-- 节点管理(添加节点(自定义节点信息))
+- 节点管理(添加节点、修改节点信息(自定义节点信息))
 
 ### 2. TODO
 
@@ -25,7 +25,7 @@
 - 用户主动取消订单功能（库存实时回滚）
 - 密码重置
 - 7天&3个月流量统计以及相应的直方图展示
-- 添加节点功能(自定义节点信息)
+- 添加节点、修改节点信息功能(自定义节点信息)
 
 #### 流程图
 ![FlowChart](https://github.com/TonyStark10006/SSStore/raw/master/flowchart.png)
@@ -42,7 +42,7 @@
 - Online IM Customer Services(chat one-to-one in real time, login needed)
 - Node Stock Management(query in order page in real time, query surplus stock and log in management page. meanwhile, supporting adding&amp;adjusting stock)
 - Node Flow Query(query the used flow in last 7 days&amp; 3 months)
-- Node Msg Management(add a node(custom node info))
+- Node Msg Management(add a node, modify node msg(custom node info))
 
 #### 2. TODO
 
@@ -56,4 +56,4 @@
 - common user&amp;admin cancel order feature(stocks are rolled back in real time)
 - reset password
 - flow statistics in last 7 days&amp;3 months, histogram display
-- add a custom node
+- add a custom node, modify node msg
