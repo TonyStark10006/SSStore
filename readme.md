@@ -4,7 +4,7 @@
 ### 1. 功能
 - 用户管理（注册&amp;登录&amp;重置密码，带邀请码功能）
 - 订单提交及处理（目前支持用户主动取消订单（库存实时回滚），带队列邮件通知功能）
-- 工单提交及处理（带队列邮件通知功能）
+- 工单提交及处理（支持上传图片附件，带队列邮件通知功能）
 - 活动管理（目前有邀请码生成、红包生成分享及自动充值）
 - 宣传页面内容管理（富文本编辑器编辑和保存，redis储存，mysql保存修改记录）
 - 在线IM客服（目前支持一对一实时聊天，需要登录）
@@ -26,6 +26,7 @@
 - 密码重置
 - 7天&3个月流量统计以及相应的直方图展示
 - 添加节点、修改节点信息功能(自定义节点信息)
+- 工单提交(支持上传附件jpg)
 
 #### 流程图
 ![FlowChart](https://github.com/TonyStark10006/SSStore/raw/master/flowchart.png)
@@ -36,9 +37,9 @@
 ### 1. feature
 - User Management(register&amp;login&amp;reset password, including generating invitation code feature)
 - Order Processing(common user/admin cancel order supported currently(stocks are rolled back in real time), including sending mail notification queue feature)
-- Work Order Processing(include sending mail notification queue feature)
-- Activities management(generating invitation code, generating lucky money&amp; charging supported currently)
-- Content of Introduction Page Management(using rich text editor process and save, saved by redis, modification records are saved by mysql)
+- Work Order Processing(include uploading image/jepg attachment and sending mail notification queue feature)
+- Activities management(generate invitation code, generate lucky money&amp; charge supported currently)
+- Content of Introduction Page Management(use rich text editor process and save, saved by redis, modification records are saved by mysql)
 - Online IM Customer Services(chat one-to-one in real time, login needed)
 - Node Stock Management(query in order page in real time, query surplus stock and log in management page. meanwhile, supporting adding&amp;adjusting stock)
 - Node Flow Query(query the used flow in last 7 days&amp; 3 months)
@@ -57,3 +58,4 @@
 - reset password
 - flow statistics in last 7 days&amp;3 months, histogram display
 - add a custom node, modify node msg
+- submit a work order(upload a image/jepg attachment supported)
