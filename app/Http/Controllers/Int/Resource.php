@@ -39,7 +39,11 @@ class Resource extends Controller
             return self::getThreeMonthsFlow();
         }
 
-        return response('', 404);
+        if ($this->type == 'getWOAttachment') {
+            return self::getImg();
+        }
+
+        return view('errors\404');
     }
 
     public function getIRealTimeStock()
@@ -58,5 +62,19 @@ class Resource extends Controller
     {
         $model = new UsageSummary($this->request);
         return $model->getThreeMonthsFlow();
+    }
+
+    public function getImg()
+    {
+        $SSWorkOrderID = filter_var($this->request->input('id'), FILTER_SANITIZE_STRING);
+        $filePath = '../storage/app/WorkOrder/attachment/' . Session::get('username') . '/' . $SSWorkOrderID . '.jpg';
+        if (file_exists($filePath)) {
+            $img = file_get_contents($filePath);
+            return response($img,'200')
+                ->header('Content-Type', 'image/jpeg');
+        } else {
+            return view('errors\404');
+        }
+
     }
 }

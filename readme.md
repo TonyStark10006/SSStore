@@ -26,7 +26,7 @@
 - 密码重置
 - 7天&3个月流量统计以及相应的直方图展示
 - 添加节点、修改节点信息功能(自定义节点信息)
-- 工单提交(支持上传附件jpg)
+- 工单提交、查询(支持上传附件jpg)
 
 #### 流程图
 ![FlowChart](https://github.com/TonyStark10006/SSStore/raw/master/flowchart.png)
@@ -58,4 +58,4 @@
 - reset password
 - flow statistics in last 7 days&amp;3 months, histogram display
 - add a custom node, modify node msg
-- submit a work order(upload a image/jepg attachment supported)
+- submit & query work order(upload a image/jpeg attachment supported)

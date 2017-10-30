@@ -77,4 +77,12 @@ class WorkOrderModel
         }
 
     }
+
+    public function queryWorkOrderRecord($date1, $date2)
+    {
+        return DB::table('wo_record')
+            ->whereBetween('sub_time', [$date1, $date2])
+            ->where('username', Session::get('username'))
+            ->get();
+    }
 }
