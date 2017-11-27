@@ -4,8 +4,9 @@ namespace App\Model\Member;
 
 use App\Http\Controllers\publicTool\filterTrait;
 use Illuminate\Database\Eloquent\Model;
-//use Illuminate\Http\Request;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Redis;
 
 class AuthModel extends Model
 {
@@ -13,14 +14,18 @@ class AuthModel extends Model
     private $redirectUrl;
     private $username;
     private $password;
+    private $source;
+    protected $token;
 
     use filterTrait;
 
-    public function __construct(array $attributes = [], $request)
+    public function __construct(array $attributes = [], $request, $source)
     {
         parent::__construct($attributes);
-        $this->redirectUrl = urldecode(self::filter($request->cookie('R')));
-
+        if ($request->hasCookie('R')) {
+            $this->redirectUrl = urldecode(self::filter($request->cookie('R')));
+        }
+        $this->source = $source;
     }
 
     /*
@@ -59,20 +64,26 @@ class AuthModel extends Model
             );
         }
         else {
-            if ($request->session()->has('username') && $request->session()->get('username') !== 'anonymous') {
-                //判断是否已经登录
-                return array(
-                    'tips' => '当前已登录账户：' . $request->session()->get('username') . '，请先登出',
-                    'msg' => 'failure'
-                );
+            if ($this->source == 'web') {
+                if ($request->session()->has('username') && $request->session()->get('username') !== 'anonymous') {
+                    //判断是否已经登录
+                    return array(
+                        'tips' => '当前已登录账户：' . $request->session()->get('username') . '，请先登出',
+                        'msg' => 'failure'
+                    );
+                }
+            }
 
-            } else {
-                $userMessage = DB::table('member')->where('username', $this->username)->first();
-                //判断用户是否存在
-                if (!empty($userMessage)) {
-                    //校验用户输入密码与数据库密码是否一致
-                    if (strcmp(md5($this->password.'GOOD_PW'), $userMessage->password) == 0) {
-                        //赋值并跳转
+            $userMessage = DB::table('member')
+                ->select('user_id', 'username', 'email', 'user_token', 'token_expire_time', 'password')
+                ->where('username', $this->username)
+                ->first();
+            //判断用户是否存在
+            if (!empty($userMessage)) {
+                //校验用户输入密码与数据库密码是否一致
+                if (strcmp(md5($this->password . 'GOOD_PW'), $userMessage->password) == 0) {
+                    //1.校验通过后web请求写session和返回跳转url
+                    if ($this->source == 'web') {
                         $request->session()->put([
                             'user_id' => $userMessage->user_id,
                             'username' => $this->username,
@@ -91,26 +102,52 @@ class AuthModel extends Model
                                 'tips' => $this->redirectUrl,
                                 'msg' => 'success'
                             );
-                            } else {
-                                return array(
-                                    'tips' => '/',
-                                    'msg' => 'success'
-                                );
-                            }
+                        } else {
+                            return array(
+                                'tips' => '/',
+                                'msg' => 'success'
+                            );
+                        }
+                        //2.校验通过后给API请求返回token，同时每次登陆会删除旧token
                     } else {
-                        return array(
-                            'tips' => '密码错误',
-                            'msg' => 'failure'
-                        );
+                        $tokenModel = new TokenGeneration();
+                        $this->token = $tokenModel->getToken();
+                        Redis::set($this->token, json_encode($userMessage));
+                        Redis::expire($this->token, 1296000);
+                        DB::table('member')
+                            ->where('username', $this->username)
+                            ->update([
+                                'user_token' => $this->token,
+                                'token_expire_time' => date('Y-m-d H:i:s', strtotime("+ 15 days"))
+                            ]);
+                        if (!empty($userMessage->user_token)) {
+                            Redis::del($userMessage->user_token);
+                        }
+                        return [
+                            'tips' => '校验通过',
+                            'msg' => 'success',
+                            'token' => $this->token
+                        ];
                     }
+
                 } else {
                     return array(
-                        'tips' => '用户不存在,请填写正确用户名',
+                        'tips' => '密码错误',
                         'msg' => 'failure'
                     );
                 }
+            } else {
+                return array(
+                    'tips' => '用户不存在,请填写正确用户名',
+                    'msg' => 'failure'
+                );
             }
         }
+    }
+
+    public function getToken()
+    {
+        return $this->token;
     }
     //}
 }
