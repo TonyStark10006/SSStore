@@ -5,9 +5,11 @@ namespace App\Http\Controllers\Int;
 use App\Http\Controllers\publicTool\filterTrait;
 use App\Model\Management\Stock\StockQueryModel;
 use App\Model\Services\UsageSummary;
+use App\Traits\APIMsg;
 use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Redis;
 use Illuminate\Support\Facades\Session;
 
 class Resource extends Controller
@@ -103,5 +105,29 @@ class Resource extends Controller
         } else {
             return view('errors\404');
         }
+    }
+
+    use APIMsg;
+    public function getUserZoneMsgForAPI(Request $request)
+    {
+        $userMsg = json_decode(Redis::get($request->input('token')), true);
+        $userZoneMsg = json_decode(
+            json_encode(DB::table('user')
+            ->select('node_name', 'user_name', 'uid', 'email', 'passwd', 'port', 'protocol', 'obfs', 'enable',
+            'method', 'expire_time')
+            ->where('uid', $userMsg['user_id'])
+            ->get()
+        ), true);
+
+        return response()->json(
+            array_merge($this->success, ['data' => $userZoneMsg]),
+            200, [], 256);
+    }
+
+    public function getAppIndexContent()
+    {
+        $content = Redis::get('appIndexContent');
+        //$content = DB::table('introduction')->where('type', 2)->orderBy('create_time', 'desc')->first();//descent ascent
+        return $this->mergeResponse($this->success, $content);
     }
 }

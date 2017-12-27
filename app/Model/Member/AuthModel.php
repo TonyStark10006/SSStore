@@ -75,7 +75,7 @@ class AuthModel extends Model
             }
 
             $userMessage = DB::table('member')
-                ->select('user_id', 'username', 'email', 'user_token', 'token_expire_time', 'password')
+                ->select('user_id', 'username', 'email', 'user_token', 'token_expire_time', 'password', 'permission')
                 ->where('username', $this->username)
                 ->first();
             //判断用户是否存在
