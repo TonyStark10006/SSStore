@@ -2,7 +2,7 @@
 ### 基于Laravel5.4 + PHP7.0，IM基于Swoole + LayIM
 
 ### 1. 功能
-- 用户管理（注册&amp;登录&amp;重置密码，带邀请码功能）
+- 用户管理（注册&amp;登录&amp;重置密码&amp;修改密码，带邀请码功能）
 - 订单提交及处理（目前支持用户主动取消订单（库存实时回滚），订单导出(Excel表)，带队列邮件通知功能）
 - 工单提交及处理（支持上传图片附件，带队列邮件通知功能）
 - 活动管理（目前有邀请码生成、红包生成分享及自动充值）
@@ -36,7 +36,7 @@
 ### based on Laravel5.4 &amp; PHP7.0, IM module is based on Swoole &amp; LayIM.
 
 ### 1. feature
-- User Management(register&amp;login&amp;reset password, including generating invitation code feature)
+- User Management(register&amp;login&amp;reset password&amp;modify password, including generating invitation code feature)
 - Order Processing(common user/admin cancel order supported currently(stocks are rolled back in real time), output order summary(Excel sheet), including sending mail notification queue feature)
 - Work Order Processing(include uploading image/jepg attachment and sending mail notification queue feature)
 - Activities management(generate invitation code, generate lucky money&amp; charge supported currently)

@@ -15,6 +15,7 @@ class AuthModel extends Model
     private $username;
     private $password;
     private $source;
+    private $userMsg;
     protected $token;
 
     use filterTrait;
@@ -74,14 +75,15 @@ class AuthModel extends Model
                 }
             }
 
-            $userMessage = DB::table('member')
+            $userMessage = $this->getUserMsg();
+                /*DB::table('member')
                 ->select('user_id', 'username', 'email', 'user_token', 'token_expire_time', 'password', 'permission')
                 ->where('username', $this->username)
-                ->first();
+                ->first();*/
             //判断用户是否存在
             if (!empty($userMessage)) {
                 //校验用户输入密码与数据库密码是否一致
-                if (strcmp(md5($this->password . 'GOOD_PW'), $userMessage->password) == 0) {
+                if ($this->comparePassword()) {
                     //1.校验通过后web请求写session和返回跳转url
                     if ($this->source == 'web') {
                         $request->session()->put([
@@ -148,6 +150,23 @@ class AuthModel extends Model
     public function getToken()
     {
         return $this->token;
+    }
+
+    public function comparePassword()
+    {
+        if (strcmp(md5($this->password . 'GOOD_PW'), $this->userMsg->password) == 0) {
+            return true;
+        } else {
+            return false;
+        }
+    }
+
+    public function getUserMsg()
+    {
+        return $this->userMsg = DB::table('member')
+            ->select('user_id', 'username', 'email', 'user_token', 'token_expire_time', 'password', 'permission')
+            ->where('username', $this->username)
+            ->first();
     }
     //}
 }

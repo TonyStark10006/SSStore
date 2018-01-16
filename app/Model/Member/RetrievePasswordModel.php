@@ -12,7 +12,9 @@ class RetrievePasswordModel
 
     public function __construct(Request $request)
     {
-        $this->email = filter_var($request->input('email'), FILTER_SANITIZE_EMAIL);
+        if ($request->has('email')) {
+            $this->email = filter_var($request->input('email'), FILTER_SANITIZE_EMAIL);
+        }
 
         if ($request->has('token')) {
             $this->token = filter_var($request->input('token'), FILTER_SANITIZE_EMAIL);
@@ -110,26 +112,8 @@ class RetrievePasswordModel
         }
 
         if ($this->preResetPassword()['type'] == 1) {
-            //验证密码格式
-            if (preg_match("/^(\w){6,20}$/", $this->password)){
-                $password1 = $this->password;
-            } else {
-                //$this->password = false;
-                return array(
-                    'type' => 0,
-                    'msg' => '密码由字母、数字或下划线自由组合，长度必须为6-20个字符'
-                );
-            }
             //更新密码
-            $result1 = DB::table('member')
-                ->where([
-                    'email' => $this->email,
-                    'token' => $this->token
-                ])
-                ->update([
-                    'password' => md5($password1 . 'GOOD_PW'),
-                    //'token' => null
-                ]);
+            $result1 = $this->updateDBPassword();
 
             if ($result1) {
                 return [
@@ -143,5 +127,33 @@ class RetrievePasswordModel
                 'msg' => '修改失败'
             ];
         };
+    }
+
+    public function updateDBPassword()
+    {
+        //验证密码格式
+        if (preg_match("/^(\w){6,20}$/", $this->password)){
+            $password1 = $this->password;
+        } else {
+            //$this->password = false;
+            return array(
+                'type' => 0,
+                'msg' => '密码由字母、数字或下划线自由组合，长度必须为6-20个字符'
+            );
+        }
+        $result2 = DB::table('member')
+            ->where([
+                'email' => $this->email,
+                'token' => $this->token
+            ])
+            ->update([
+                'password' => md5($password1 . 'GOOD_PW'),
+                //'token' => null
+            ]);
+        if ($result2) {
+            return true;
+        } else {
+            return false;
+        }
     }
 }
