@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Redis;
+use Illuminate\Support\Facades\Session;
 
 class AuthModel extends Model
 {
@@ -14,6 +15,9 @@ class AuthModel extends Model
     private $redirectUrl;
     private $username;
     private $password;
+    private $originUsername;
+    private $originPassword;
+    private $oldPassword;
     private $source;
     private $userMsg;
     protected $token;
@@ -27,6 +31,12 @@ class AuthModel extends Model
             $this->redirectUrl = urldecode(self::filter($request->cookie('R')));
         }
         $this->source = $source;
+
+        $this->originUsername = $request->input('username');
+
+        $this->originPassword = $request->input('password');
+
+        $this->oldPassword = $request->input('oldPassword');
     }
 
     /*
@@ -36,10 +46,10 @@ class AuthModel extends Model
      * */
     public function auth($request)
     {
-        if(preg_match("/^[a-zA-Z0-9_\x7f-\xff][a-zA-Z0-9_\x7f-\xff]+$/", $request->input('username'))
-            && strlen($request->input('username')) <= 20) {
+        if(preg_match("/^[a-zA-Z0-9_\x7f-\xff][a-zA-Z0-9_\x7f-\xff]+$/", $this->originUsername)
+            && strlen($this->originUsername) <= 20) {
 
-            $this->username = $request->input('username');
+            $this->username = $this->originUsername;
         }else{
             return array(
                 'tips' => '请检查用户名是否输入正确',
@@ -47,8 +57,8 @@ class AuthModel extends Model
             );
         }
 
-        if (preg_match("/^(\w){6,20}$/", $request->input('password'))) {
-            $this->password = $request->input('password');
+        if (preg_match("/^(\w){6,20}$/", $this->originPassword)) {
+            $this->password = $this->originPassword;
         }else{
             return array(
                 'tips' => '请检查密码格式是否正确',
@@ -75,7 +85,7 @@ class AuthModel extends Model
                 }
             }
 
-            $userMessage = $this->getUserMsg();
+            $userMessage = $this->getUserMsg($this->username);
                 /*DB::table('member')
                 ->select('user_id', 'username', 'email', 'user_token', 'token_expire_time', 'password', 'permission')
                 ->where('username', $this->username)
@@ -83,7 +93,7 @@ class AuthModel extends Model
             //判断用户是否存在
             if (!empty($userMessage)) {
                 //校验用户输入密码与数据库密码是否一致
-                if ($this->comparePassword()) {
+                if ($this->comparePassword($this->password)) {
                     //1.校验通过后web请求写session和返回跳转url
                     if ($this->source == 'web') {
                         $request->session()->put([
@@ -152,20 +162,74 @@ class AuthModel extends Model
         return $this->token;
     }
 
-    public function comparePassword()
+    public function comparePassword($password)
     {
-        if (strcmp(md5($this->password . 'GOOD_PW'), $this->userMsg->password) == 0) {
+        if (strcmp(md5($password . 'GOOD_PW'), $this->userMsg->password) == 0) {
             return true;
         } else {
             return false;
         }
     }
 
-    public function getUserMsg()
+    public function comparePasswordForModification()
+    {
+        app('debugbar')->info($this->oldPassword);
+        $this->sanitizePasswordOnly();
+        $this->getUserMsg(Session::get('username'));
+        $oldResult = $this->comparePassword($this->oldPassword);
+        $newResult = $this->validatePasswordOnly();
+        $newCompareResult = $this->comparePassword($this->password);
+
+        if (!$oldResult) {
+            return [
+                'tips' => '原密码错误',
+                'type' => false
+            ];
+        }
+
+        if (!$newResult) {
+            return [
+                'tips' => '新密码格式错误',
+                'type' => false
+            ];
+        }
+
+        if ($newCompareResult) {
+            return [
+                'tips' => '新密码与原系统密码不能一样',
+                'type' => false
+            ];
+        }
+
+        return [
+            'password' => $this->password,
+            'username' => Session::get('username'),
+            'tips' => '验证成功',
+            'type' => true
+        ];
+    }
+
+    public function validatePasswordOnly()
+    {
+        if (preg_match("/^(\w){6,20}$/", $this->originPassword)) {
+            return $this->password = $this->originPassword;
+        }else{
+            return false;
+        }
+    }
+
+    public function sanitizePasswordOnly()
+    {
+        $this->password = filter_var($this->originPassword, FILTER_SANITIZE_STRING);
+        $this->oldPassword = filter_var($this->oldPassword, FILTER_SANITIZE_STRING);
+        return;
+    }
+
+    public function getUserMsg($username)
     {
         return $this->userMsg = DB::table('member')
             ->select('user_id', 'username', 'email', 'user_token', 'token_expire_time', 'password', 'permission')
-            ->where('username', $this->username)
+            ->where('username', $username)//
             ->first();
     }
     //}
