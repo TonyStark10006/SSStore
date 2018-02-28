@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Int;
 use App\Http\Controllers\publicTool\filterTrait;
 use App\Model\Management\Stock\StockQueryModel;
 use App\Model\Services\UsageSummary;
+use App\Model\Tool\QRCodeGeneration;
 use App\Traits\APIMsg;
 use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
@@ -129,5 +130,20 @@ class Resource extends Controller
         $content = Redis::get('appIndexContent');
         //$content = DB::table('introduction')->where('type', 2)->orderBy('create_time', 'desc')->first();//descent ascent
         return $this->mergeResponse($this->success, $content);
+    }
+
+    public function redirectChargeUrl()
+    {
+        $UA = $_SERVER['HTTP_USER_AGENT'];
+        if (strpos($UA, 'AlipayClient')) {
+            return response('请稍等', 301)->header('Location', env('PURCHASE_QRCODE_URL_ALIPAY'));//redirect(env('PURCHASE_QRCODE_URL_WECHATPAY'))
+        }
+
+        if (strpos($UA, 'MicroMessenger')) {
+            $model = new QRCodeGeneration();
+            return $model->generateQRCodeForPayment(env('PURCHASE_QRCODE_URL_WECHATPAY'));
+        }
+
+        return '请使用微信或者支付宝扫描二维码';
     }
 }

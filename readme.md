@@ -1,5 +1,5 @@
 ## 一个小商店
-### 基于Laravel5.4 + PHP7.0，IM基于Swoole + LayIM
+### 基于Laravel5.5 + PHP7.2，IM基于Swoole + LayIM
 
 ### 1. 功能
 - 用户管理（注册&amp;登录&amp;重置密码&amp;修改密码，带邀请码功能）
@@ -28,12 +28,13 @@
 - 添加节点、修改节点信息功能(自定义节点信息)
 - 工单提交、查询(支持上传附件jpg)
 - 导出订单汇总Excel表
+- 支付二维码支持识别微信或者支付宝，支付宝可直接跳转转账界面，微信则跳转二维码页面自行长按识别后转账
 
 #### 流程图
 ![FlowChart](https://github.com/TonyStark10006/SSStore/raw/master/flowchart.png)
 
 ## A Small Store
-### based on Laravel5.4 &amp; PHP7.0, IM module is based on Swoole &amp; LayIM.
+### based on Laravel5.5 &amp; PHP7.2, IM module is based on Swoole &amp; LayIM.
 
 ### 1. feature
 - User Management(register&amp;login&amp;reset password&amp;modify password, including generating invitation code feature)
@@ -61,3 +62,5 @@
 - add a custom node, modify node msg
 - submit & query work order(upload a image/jpeg attachment supported)
 - output order summary Excel sheet
+- payment QR code can be identified by alipay/wechatpay automatically, 
+  transfer in alipay directly, long press the image to transfer in wechatpay 
