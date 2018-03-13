@@ -146,4 +146,10 @@ class Resource extends Controller
 
         return '请使用微信或者支付宝扫描二维码';
     }
+
+    public function generatePaymentRedirectQRCode(QRCodeGeneration $QRCodeGeneration)
+    {
+        return $QRCodeGeneration->generatePaymentRedirectQRCode();
+    }
+
 }
